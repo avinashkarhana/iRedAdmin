@@ -1,5 +1,3 @@
-# Author: Zhang Huangbin <zhb@iredmail.org>
-
 import os
 
 import web
@@ -55,6 +53,10 @@ urls = urls_backend
 # iRedAdmin.
 from controllers.panel.urls import urls as urls_panel
 urls += urls_panel
+
+#API
+from controllers.api.urls import urls as urls_api
+urls += urls_api
 
 # Initialize application object.
 app = web.application(urls)
@@ -122,7 +124,7 @@ _default_template_dir = rootdir + "/../templates/" + settings.SKIN
 
 
 # Define template renders.
-def render_template(template_name, **kwargs):
+def render_template(template_name,content_type="html", **kwargs):
     jinja_env = Environment(
         loader=FileSystemLoader(_default_template_dir),
         extensions=["jinja2.ext.do"],
@@ -130,8 +132,10 @@ def render_template(template_name, **kwargs):
 
     jinja_env.globals.update(jinja_env_vars)
     jinja_env.filters.update(jinja_env_filters)
-
-    web.header("Content-Type", "text/html")
+    if content_type=="html":
+        web.header("Content-Type", "text/html")
+    else:
+        web.header("Content-Type", content_type)
     return jinja_env.get_template(template_name).render(kwargs)
 
 

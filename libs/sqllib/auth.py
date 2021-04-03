@@ -1,4 +1,4 @@
-import web
+import web 
 import settings
 from libs import iredutils, iredpwd
 from libs.l10n import TIMEZONES
@@ -8,22 +8,30 @@ session = web.config.get('_session', {})
 
 
 def auth(conn,
-         username,
-         password,
+         username=False,
+         password=False,
+         is_api_login=False,
+         api_key=False,
          account_type='admin',
          verify_password=False):
-    if not iredutils.is_email(username):
-        return (False, 'INVALID_USERNAME')
+    # Check if Username/Password login
+    if is_api_login==False:
+        if not iredutils.is_email(username):
+            return (False, 'INVALID_USERNAME')
 
-    if not password:
-        return (False, 'EMPTY_PASSWORD')
+        if not password:
+            return (False, 'EMPTY_PASSWORD')
 
-    username = str(username).lower()
-    password = str(password)
-    domain = username.split('@', 1)[-1]
+        username = str(username).lower()
+        password = str(password)
+        domain = username.split('@', 1)[-1]
+    #if API login
+    else:
+        api_key = str(api_key)
+
 
     # Query account from SQL database.
-    if account_type == 'admin':
+    if account_type == 'admin' and not is_api_login:
         # separate admin accounts
         result = conn.select('admin',
                              vars={'username': username},
@@ -42,14 +50,31 @@ def auth(conn,
             )
             if result:
                 session['admin_is_mail_user'] = True
-    elif account_type == 'user':
+    elif account_type == 'user' and not is_api_login:
         result = conn.select('mailbox',
                              vars={'username': username},
                              what='password, language, isadmin, isglobaladmin, settings',
                              where="username=$username AND active=1",
                              limit=1)
+
+    # check api key if is_api_login                         
+    elif is_api_login and account_type == 'admin':
+        result = conn.select('api',
+                             vars={'api_key': api_key},
+                             where="key=$api_key AND active=1",
+                             what='id,isglobaladminapi,key, expiry_date_time, active, settings, SYSDATE() as now',
+                             limit=1)
+        if result[0].expiry_date_time < result[0].now:
+            conn.update('api', where="id="+str(result[0].id), active = "0")
+            return (False, 'INVALID_API_KEY')
+        if str(result[0].active).strip()=="0":
+            return (False, 'INVALID_API_KEY')
+
     else:
-        return (False, 'INVALID_ACCOUNT_TYPE')
+        if not is_api_login:
+            return (False, 'INVALID_ACCOUNT_TYPE')
+        else:
+            return (False, 'INVALID_API_KEY')
 
     if not result:
         # Account not found.
@@ -58,14 +83,18 @@ def auth(conn,
         return (False, 'INVALID_CREDENTIALS')
 
     record = result[0]
-    password_sql = str(record.password)
     account_settings = sqlutils.account_settings_string_to_dict(str(record.settings))
 
     # Verify password
-    if not iredpwd.verify_password_hash(password_sql, password):
-        return (False, 'INVALID_CREDENTIALS')
+    if not is_api_login:
+        password_sql = str(record.password)
+        if not iredpwd.verify_password_hash(password_sql, password):
+            return (False, 'INVALID_CREDENTIALS')
 
-    if not verify_password:
+    if record.get('isglobaladminapi', 0) == 1:
+        session['is_global_admin_api'] = True
+
+    if (not verify_password) and (not is_api_login):
         session['username'] = username
 
         # Set preferred language.

@@ -1,5 +1,3 @@
-# Author: Zhang Huangbin <zhb@iredmail.org>
-
 import web
 from libs import iredutils
 
@@ -26,6 +24,18 @@ def require_global_admin(func):
                 raise web.seeother("/domains?msg=PERMISSION_DENIED")
             else:
                 raise web.seeother("/login?msg=LOGIN_REQUIRED")
+
+    return proxyfunc
+
+def require_global_admin_api_key(func):
+    def proxyfunc(*args, **kw):
+        if session.get("is_global_admin_api"):
+            return func(*args, **kw)
+        else:
+            if session.get("logged"):
+                raise web.seeother("/api?msg=PERMISSION_DENIED")
+            else:
+                raise web.seeother("/api?msg=LOGIN_REQUIRED")
 
     return proxyfunc
 

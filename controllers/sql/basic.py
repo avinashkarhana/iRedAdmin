@@ -1,5 +1,3 @@
-# Author: Zhang Huangbin <zhb@iredmail.org>
-
 import web
 import settings
 
@@ -33,19 +31,37 @@ class Login:
                 raise web.seeother('/dashboard')
 
     def POST(self):
-        # Get username, password.
         form = web.input(_unicode=False)
+        is_api_login = False
+        api_key = False
+        username = False
+        password = False
 
-        username = form.get('username', '').strip().lower()
-        password = str(form.get('password', '').strip())
+        # check if API login
+        try:
+            if form.get('key', '').strip()!="" and form.get('key', '').strip()!=None:
+                is_api_login=True
+                api_key = str(form.get('key', '').strip())
+            else:
+                is_api_login=False
+        except AttributeError:
+            raise web.seeother('/api?msg=Something_Went_Wrong_E:AuthAPIChk')
+
+        
+        if not is_api_login:
+            # Get username, password.
+            username = form.get('username', '').strip().lower()
+            password = str(form.get('password', '').strip())
 
         # Auth as domain admin
         _wrap = SQLWrap()
         conn = _wrap.conn
 
-        auth_result = auth.auth(conn=conn,
+        auth_result = auth.auth(conn=conn, 
                                 username=username,
                                 password=password,
+                                is_api_login=is_api_login,
+                                api_key=api_key,
                                 account_type='admin')
 
         if auth_result[0] is True:
@@ -66,12 +82,18 @@ class Login:
                 if account_settings.get(k) == 'yes':
                     session[k] = True
 
-            if settings.REDIRECT_TO_DOMAIN_LIST_AFTER_LOGIN:
+            if settings.REDIRECT_TO_DOMAIN_LIST_AFTER_LOGIN and (not is_api_login):
                 raise web.seeother('/domains')
             else:
-                raise web.seeother('/dashboard?checknew')
+                if not is_api_login:
+                    raise web.seeother('/dashboard?checknew')
+                else:
+                    raise web.seeother('/api?msg=Successfully_LoggedIn')
         else:
-            raise web.seeother('/login?msg=INVALID_CREDENTIALS')
+            if not is_api_login:
+                raise web.seeother('/login?msg=INVALID_CREDENTIALS')
+            else:
+                raise web.seeother('/api?msg=INVALID_CREDENTIALS')
 
 
 class Logout:
