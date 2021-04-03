@@ -8,14 +8,14 @@ urls = [
     '/api', 'controllers.api.msg.Message',
 
     # User related LIST functions
-    '/api/users/(%s$)' % d, 'controllers.sql.user.List',
+    '/api/users/(%s$)' % d, 'controllers.api.user.List',
     
     # GET disabled accounts.
-    '/api/users/(%s)/disabled' % d, 'controllers.sql.user.ListDisabled',
+    '/api/users/(%s)/disabled' % d, 'controllers.api.user.ListDisabled',
     
     # Create user.
-    '/api/user/create/(%s$)' % d, 'controllers.sql.user.Create',
+    '/api/user/create/(%s$)' % d, 'controllers.api.user.Create',
     
     # Profile Functions.
-    '/api/user/profile/(%s$)' % e, 'controllers.sql.user.Profile',
+    '/api/user/profile/(%s$)' % e, 'controllers.api.user.Profile',
 ]
