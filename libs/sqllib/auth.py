@@ -1,4 +1,4 @@
-import web 
+import web, datetime
 import settings
 from libs import iredutils, iredpwd
 from libs.l10n import TIMEZONES
@@ -15,6 +15,8 @@ def auth(conn,
          account_type='admin',
          verify_password=False):
     # Check if Username/Password login
+    result=False
+    kresult={}
     if is_api_login==False:
         if not iredutils.is_email(username):
             return (False, 'INVALID_USERNAME')
@@ -59,32 +61,47 @@ def auth(conn,
 
     # check api key if is_api_login                         
     elif is_api_login and account_type == 'admin':
-        result = conn.select('api',
-                             vars={'api_key': api_key},
-                             where="key=$api_key AND active=1",
-                             what='id,isglobaladminapi,key, expiry_date_time, active, settings, SYSDATE() as now',
-                             limit=1)
-        if result[0].expiry_date_time < result[0].now:
-            conn.update('api', where="id="+str(result[0].id), active = "0")
+        key_sql = "SELECT * FROM api where api_key='"+api_key+"' AND is_enabled=1 AND isglobaladminapi=1"
+        result = conn.query(key_sql)
+
+        if len(result)==0:
+            session.kill()
             return (False, 'INVALID_API_KEY')
-        if str(result[0].active).strip()=="0":
+        
+        now=datetime.datetime.now()
+        kresult=dict(result[0])
+        
+        if  kresult.get('expiry_date_time') < now :
+            conn.update('api', where="kid="+str(kresult.get('kid')).strip(), is_enabled = "0")
+            session.kill()
             return (False, 'INVALID_API_KEY')
+
+        if str(kresult.get('is_enabled')).strip()=="0":
+            session.kill()
+            return (False, 'INVALID_API_KEY')
+
 
     else:
         if not is_api_login:
             return (False, 'INVALID_ACCOUNT_TYPE')
         else:
             return (False, 'INVALID_API_KEY')
-
+    
     if not result:
         # Account not found.
         # Do NOT return msg like 'Account does not ***EXIST***', crackers
         # can use it to verify valid accounts.
         return (False, 'INVALID_CREDENTIALS')
 
-    record = result[0]
-    account_settings = sqlutils.account_settings_string_to_dict(str(record.settings))
-
+    account_settings=""
+    record=""
+    if not is_api_login:
+        record = result[0]
+        account_settings = sqlutils.account_settings_string_to_dict(str(record.settings))
+    else:
+        record= kresult
+        account_settings = sqlutils.account_settings_string_to_dict(str(record.get('settings')))
+    
     # Verify password
     if not is_api_login:
         password_sql = str(record.password)
@@ -92,7 +109,10 @@ def auth(conn,
             return (False, 'INVALID_CREDENTIALS')
 
     if record.get('isglobaladminapi', 0) == 1:
+        session['is_global_admin'] = True
         session['is_global_admin_api'] = True
+        session['global_admin_api_key'] = api_key
+
 
     if (not verify_password) and (not is_api_login):
         session['username'] = username

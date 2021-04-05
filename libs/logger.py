@@ -41,7 +41,10 @@ def log_traceback():
 def log_activity(msg, admin="", domain="", username="", event="", loglevel="info"):
     try:
         if not admin:
-            admin = session.get("username")
+            if session.get("is_global_admin_api"):
+                admin = "API_KEY-"+session.get("global_admin_api_key")
+            else:
+                admin = session.get("username")
 
         msg = str(msg)
 

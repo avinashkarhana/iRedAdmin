@@ -1,5 +1,6 @@
-import web
+import web,urllib
 from libs import iredutils
+from controllers.api.api import api_key_is_valid
 
 session = web.config.get("_session")
 
@@ -18,9 +19,14 @@ def require_login(func):
 def require_global_admin(func):
     def proxyfunc(*args, **kw):
         if session.get("is_global_admin"):
+            if session.get("is_global_admin_api") and not api_key_is_valid(session.get("global_admin_api_key")):
+                session.kill()
+                raise web.seeother("/api?msg=LOGIN_REQUIRED")
             return func(*args, **kw)
         else:
             if session.get("logged"):
+                if session.get("is_global_admin_api") :
+                    raise web.seeother("/api?msg=Pobably_Already_LoggedIn_"+urllib.parse.urlencode(session))
                 raise web.seeother("/domains?msg=PERMISSION_DENIED")
             else:
                 raise web.seeother("/login?msg=LOGIN_REQUIRED")
@@ -30,6 +36,9 @@ def require_global_admin(func):
 def require_global_admin_api_key(func):
     def proxyfunc(*args, **kw):
         if session.get("is_global_admin_api"):
+            if not api_key_is_valid(session.get("global_admin_api_key")):
+                session.kill()
+                raise web.seeother("/api?msg=LOGIN_REQUIRED")
             return func(*args, **kw)
         else:
             if session.get("logged"):

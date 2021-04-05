@@ -45,7 +45,7 @@ class List:
                                                      domains=[domain],
                                                      disabled_only=disabled_only,
                                                      first_char=first_char)
-
+       
         if total:
             _qr = sql_lib_general.get_first_char_of_all_accounts(domain=domain,
                                                                  account_type='user',
@@ -78,11 +78,11 @@ class List:
                         used_quotas = sql_lib_general.get_account_used_quota(accounts=mails, conn=conn)
                     except Exception:
                         pass
-
-        if session.get('is_global_admin'):
-            days_to_keep_removed_mailbox = settings.DAYS_TO_KEEP_REMOVED_MAILBOX_FOR_GLOBAL_ADMIN
         else:
-            days_to_keep_removed_mailbox = settings.DAYS_TO_KEEP_REMOVED_MAILBOX
+                raise web.seeother('/api?msg=EMPTY_RESULTSET_FOR_SPECIFIED_DOMAIN')
+
+        if session.get('is_global_admin_api'):
+            days_to_keep_removed_mailbox = settings.DAYS_TO_KEEP_REMOVED_MAILBOX_FOR_GLOBAL_ADMIN
 
         return web.render('api/msg/msg.html', content_type="application/json", 
                             msg={
@@ -160,18 +160,18 @@ class List:
                                                      users=mails,
                                                      as_normal_admin=False)
             msg = 'UNMARKASADMIN'
-        elif action == 'markasglobaladmin':
-            result = sql_lib_user.mark_user_as_admin(conn=conn,
-                                                     domain=domain,
-                                                     users=mails,
-                                                     as_global_admin=True)
-            msg = 'MARKASGLOBALADMIN'
-        elif action == 'unmarkasglobaladmin':
-            result = sql_lib_user.mark_user_as_admin(conn=conn,
-                                                     domain=domain,
-                                                     users=mails,
-                                                     as_global_admin=False)
-            msg = 'UNMARKASGLOBALADMIN'
+        #elif action == 'markasglobaladmin':
+        #    result = sql_lib_user.mark_user_as_admin(conn=conn,
+        #                                             domain=domain,
+        #                                             users=mails,
+        #                                             as_global_admin=True)
+        #    msg = 'MARKASGLOBALADMIN'
+        #elif action == 'unmarkasglobaladmin':
+        #    result = sql_lib_user.mark_user_as_admin(conn=conn,
+        #                                             domain=domain,
+        #                                             users=mails,
+        #                                             as_global_admin=False)
+        #    msg = 'UNMARKASGLOBALADMIN'
         else:
             result = (False, 'INVALID_ACTION')
 
@@ -200,7 +200,7 @@ class ListDisabled:
 # Perform GET single account, Update with POST
 class Profile:
     @decorators.require_global_admin_api_key
-    def GET(self, profile_type, mail):
+    def GET(self, mail):
         mail = str(mail).lower()
         domain = mail.split('@', 1)[-1]
 
@@ -209,8 +209,6 @@ class Profile:
 
         form = web.input()
         msg = form.get('msg', '')
-
-        # profile_type == 'general'
         used_quota = {}
 
         qr = sql_lib_user.profile(mail=mail, conn=conn)
@@ -249,7 +247,6 @@ class Profile:
                             msg={
                                 "cur_domain":domain,
                                 "mail":mail,
-                                "profile_type":profile_type,
                                 "profile":user_profile,
                                 "timezones":TIMEZONES,
                                 "min_passwd_length":min_passwd_length,
@@ -264,13 +261,14 @@ class Profile:
                         )
 
     @decorators.require_global_admin_api_key
-    def POST(self, profile_type, mail):
+    def POST(self, mail):
         form = web.input(
             enabledService=[],
             shadowAddress=[],
             telephoneNumber=[],
             domainName=[],      # Managed domains
         )
+        profile_type=web.input('profile_type')
 
         mail = str(mail).lower()
 

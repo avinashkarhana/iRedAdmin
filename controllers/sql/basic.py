@@ -13,6 +13,20 @@ session = web.config.get('_session')
 
 class Login:
     def GET(self):
+        form = web.input(_unicode=False)
+        is_api_login = False
+        try:
+            if form.get('key', '').strip()!="" and form.get('key', '').strip()!=None:
+                is_api_login=True
+                api_key = str(form.get('key', '').strip())
+            else:
+                is_api_login=False
+        except AttributeError:
+            raise web.seeother('/api?msg=Something_Went_Wrong_E:AuthAPIChk')
+
+        if is_api_login:
+            raise web.seeother('/api?msg=Login_with_API_KEY_must_be_via_POST_method')
+
         if not session.get('logged'):
             form = web.input(_unicode=False)
 
