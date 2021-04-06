@@ -105,7 +105,8 @@ class List:
                           msg=form.get('msg', None))
 
     @decorators.csrf_protected
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def POST(self, domain, page=1):
         form = web.input(_unicode=False, mail=[])
         page = int(page)
@@ -129,6 +130,18 @@ class List:
         _wrap = SQLWrap()
         conn = _wrap.conn
 
+        if not session.get('is_global_admin'):
+            for mail in mails:
+                if (mail==session.get('username')) or sql_lib_user.user_is_global_admin(conn=conn,mail=mail) or sql_lib_user.user_is_normal_admin(conn=conn,mail=mail):
+                    mails=list(filter((mail).__ne__, mails))
+        
+        if session.get('username') in mails:
+            mails=list(filter((session.get('username')).__ne__, mails))
+
+        if len(mails)==0:
+            msg="NO ELIGIBLE ACCOUNTS SELECTED FOR GIVEN ACTION"
+            raise web.seeother('/users/%s/page/%d?msg=%s' % (domain, page, msg))
+
         if action == 'delete':
             keep_mailbox_days = form_utils.get_single_value(form=form,
                                                             input_name='keep_mailbox_days',
@@ -150,25 +163,25 @@ class List:
                                                       account_type='user',
                                                       enable_account=True)
             msg = 'ENABLED'
-        elif action == 'markasadmin':
+        elif action == 'markasadmin' and session.get('is_global_admin'):
             result = sql_lib_user.mark_user_as_admin(conn=conn,
                                                      domain=domain,
                                                      users=mails,
                                                      as_normal_admin=True)
             msg = 'MARKASADMIN'
-        elif action == 'unmarkasadmin':
+        elif action == 'unmarkasadmin' and session.get('is_global_admin'):
             result = sql_lib_user.mark_user_as_admin(conn=conn,
                                                      domain=domain,
                                                      users=mails,
                                                      as_normal_admin=False)
             msg = 'UNMARKASADMIN'
-        elif action == 'markasglobaladmin':
+        elif action == 'markasglobaladmin' and session.get('is_global_admin'):
             result = sql_lib_user.mark_user_as_admin(conn=conn,
                                                      domain=domain,
                                                      users=mails,
                                                      as_global_admin=True)
             msg = 'MARKASGLOBALADMIN'
-        elif action == 'unmarkasglobaladmin':
+        elif action == 'unmarkasglobaladmin' and session.get('is_global_admin'):
             result = sql_lib_user.mark_user_as_admin(conn=conn,
                                                      domain=domain,
                                                      users=mails,
@@ -358,16 +371,18 @@ class Create:
         )
 
     @decorators.csrf_protected
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def POST(self, domain):
         domain = str(domain).lower()
         form = web.input()
-
+        
         domain_in_form = form_utils.get_domain_name(form)
-        if domain != domain_in_form:
+        current_admin_managed_domains=sql_lib_admin.get_managed_domains(session.get('username'),domain_name_only=True)[1] 
+        if ((domain != domain_in_form) or (domain not in current_admin_managed_domains) or (domain_in_form not in current_admin_managed_domains)) and not session.get('is_global_admin'):
             raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
-        # Get domain name, username, cn.
+        # Get username
         username = form_utils.get_single_value(form,
                                                input_name='username',
                                                to_string=True)
