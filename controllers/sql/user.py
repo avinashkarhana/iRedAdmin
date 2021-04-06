@@ -17,7 +17,8 @@ session = web.config.get('_session')
 
 
 class List:
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def GET(self, domain, cur_page=1, disabled_only=False):
         domain = str(domain).lower()
         cur_page = int(cur_page) or 1
@@ -25,6 +26,11 @@ class List:
         form = web.input(_unicode=False)
         order_name = form.get('order_name')
         order_by_desc = (form.get('order_by', 'asc').lower() == 'desc')
+
+        #check if admin asking for details of correct domain
+        admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
+        if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
+            raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         records = []
 
@@ -191,10 +197,16 @@ class ListDisabled:
 
 
 class Profile:
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def GET(self, profile_type, mail):
         mail = str(mail).lower()
         domain = mail.split('@', 1)[-1]
+
+        #check if admin asking for details of correct domain
+        admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
+        if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
+            raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         _wrap = SQLWrap()
         conn = _wrap.conn
@@ -254,7 +266,8 @@ class Profile:
             msg=msg,
         )
 
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     @decorators.csrf_protected
     def POST(self, profile_type, mail):
         form = web.input(
@@ -265,9 +278,20 @@ class Profile:
         )
 
         mail = str(mail).lower()
+        domain = mail.split('@', 1)[-1]
+
+        #check if admin asking for details of correct domain
+        admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
+        if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
+            raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         _wrap = SQLWrap()
         conn = _wrap.conn
+ 
+        #check if a non-global admin not trying to edit a global admin
+        if session.get("is_global_admin") is False:
+            if sql_lib_general.is_global_admin(admin=mail) or sql_lib_user.user_is_global_admin(conn=conn,mail=mail) or sql_lib_user.user_is_normal_admin(conn=conn,mail=mail):
+                raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         result = sql_lib_user.update(conn=conn,
                                      mail=mail,
@@ -281,7 +305,8 @@ class Profile:
 
 
 class Create:
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def GET(self, domain):
         domain = str(domain).lower()
 

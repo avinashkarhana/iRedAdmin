@@ -12,7 +12,15 @@ def require_login(func):
         else:
             session.kill()
             raise web.seeother("/login?msg=LOGIN_REQUIRED")
+    return proxyfunc
 
+def require_admin(func):
+    def proxyfunc(*args, **kw):
+        if session.get("is_admin") is True or session.get("is_global_admin") is True:
+            return func(*args, **kw)
+        else:
+            session.kill()
+            raise web.seeother("/login?msg=LOGIN_REQUIRED")
     return proxyfunc
 
 

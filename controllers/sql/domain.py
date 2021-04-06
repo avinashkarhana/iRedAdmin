@@ -14,7 +14,8 @@ session = web.config.get('_session')
 
 
 class List:
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def GET(self, cur_page=1, disabled_only=False):
         """List paged mail domains."""
         form = web.input(_unicode=False)
@@ -38,7 +39,7 @@ class List:
         if _qr[0]:
             all_first_chars = _qr[1]
 
-        total = sql_lib_admin.num_managed_domains(conn=conn,
+        total = sql_lib_admin.num_managed_domains(conn=conn, admin=session.get('username'),
                                                   disabled_only=disabled_only,
                                                   first_char=first_char)
 
@@ -127,11 +128,17 @@ class ListDisabled:
 
 
 class Profile:
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def GET(self, profile_type, domain):
         form = web.input()
         domain = web.safestr(domain.split('/', 1)[0])
         profile_type = web.safestr(profile_type)
+
+        #check if admin asking for details of correct domain
+        admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
+        if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
+            raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         _wrap = SQLWrap()
         conn = _wrap.conn

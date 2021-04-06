@@ -27,6 +27,27 @@ ENABLED_SERVICES = [
     'enabledeliver',
 ]
 
+def user_is_normal_admin(conn, mail, user_profile=None):
+    try:
+        if user_profile:
+            if user_profile.get('isadmin', 0) == 1:
+                return True
+        else:
+            if not conn:
+                _wrap = SQLWrap()
+                conn = _wrap.conn
+
+            qr = conn.select('mailbox',
+                             vars={'username': mail},
+                             what='isadmin',
+                             where='username=$username AND isadmin=1',
+                             limit=1)
+            if qr:
+                return True
+    except:
+        pass
+
+    return False
 
 def user_is_global_admin(conn, mail, user_profile=None):
     try:
@@ -252,7 +273,8 @@ def num_users_under_domains(conn, domains, disabled_only=False, first_char=None)
     return num
 
 
-@decorators.require_global_admin
+@decorators.require_login
+@decorators.require_admin
 def get_paged_users(conn,
                     domain,
                     cur_page=1,

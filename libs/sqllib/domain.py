@@ -303,7 +303,8 @@ def simple_profile(domain, columns=None, conn=None):
         return (False, repr(e))
 
 
-@decorators.require_global_admin
+@decorators.require_login
+@decorators.require_admin
 def profile(domain, conn=None):
     domain = str(domain).lower()
 
