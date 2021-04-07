@@ -8,6 +8,10 @@
 
 {% block main %}
 
+{# Show system message #}
+{{ error_info(msg) }}
+
+
 {# Checked and get response data #}
 {% if session.get('new_version_available') %}
     {{ success_info( _("New version of iRedAdmin, %s, is now available for upgrading. <a href='https://docs.iredmail.org/migrate.or.upgrade.iredadmin.html' class='button green'>Upgrade tutorial</a>.") |format(session.get('new_version') |e), removable=false, trusted=true ) }}
@@ -17,6 +21,7 @@
 {% endif %}
 
 <div class="columns clear">
+    {% if session.get('is_admin') or session.get('is_global_admin') %}
     <div class="col1-3">
         <h2>{{ _('System Information') }}</h2>
         <div class="box-wrap clear">
@@ -109,5 +114,13 @@
             <a href="https://www.iredmail.org/admin_panel.html" class="button" />Comparison and Pricing</a>
         </div>
     </div><!-- .col2-4 -->
+    {% else %}
+    <div class="col4-8">
+        <h3 style="font-size: 20px;">Welcome to Mail Account Dashboard</h3><br>
+        <ul class="standard clean-padding bt-space10">
+            <li><a href="{{ctx.homepath}}/profile/{%if session.get('admin_is_mail_user')  or (not session.get('is_admin') and not session.get('is_global_admin')) %}user{%else%}admin{%endif%}/general/{{session.get('username')}}">You can configure the email account here.</a></li>
+        </ul>
+    </div>
+    {% endif %}
 </div>{# .columns #}
 {% endblock main %}

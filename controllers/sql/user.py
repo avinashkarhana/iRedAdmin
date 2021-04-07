@@ -211,15 +211,19 @@ class ListDisabled:
 
 class Profile:
     @decorators.require_login
-    @decorators.require_admin
     def GET(self, profile_type, mail):
         mail = str(mail).lower()
         domain = mail.split('@', 1)[-1]
 
-        #check if admin asking for details of correct domain
-        admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
-        if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
-            raise web.seeother('/domains?msg=PERMISSION_DENIED')
+        if not session.get('is_global_admin') and not session.get('is_admin'):
+            mail=session.get("username")
+
+
+        if session.get('is_admin'):
+            #check if admin asking for details of correct domain
+            admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
+            if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
+                raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         _wrap = SQLWrap()
         conn = _wrap.conn
@@ -234,7 +238,10 @@ class Profile:
         if qr[0]:
             user_profile = qr[1]
         else:
-            raise web.seeother('/users/{}?msg={}'.format(domain, web.urlquote(qr[1])))
+            if not session.get('is_global_admin') and not session.get('is_admin'):
+                raise web.seeother('/users/{}?msg={}'.format(domain, web.urlquote(qr[1])))
+            else:
+                raise web.seeother("/dashboard?msg=SOMETHING_WENT_WRONG")
         del qr
 
         # Get per-user settings
@@ -251,13 +258,10 @@ class Profile:
             used_quota = sql_lib_general.get_account_used_quota(accounts=[mail], conn=conn)
 
         # Get per-domain disabled user profiles.
-        qr = sql_lib_domain.simple_profile(conn=conn,
-                                           domain=domain,
-                                           columns=['settings'])
+        qr = sql_lib_general.get_domain_settings(conn=conn, domain=domain)
 
         if qr[0]:
-            domain_profile = qr[1]
-            domain_settings = sqlutils.account_settings_string_to_dict(domain_profile['settings'])
+            domain_settings = qr[1]
 
             min_passwd_length = domain_settings.get('min_passwd_length', settings.min_passwd_length)
             max_passwd_length = domain_settings.get('max_passwd_length', settings.max_passwd_length)
@@ -280,7 +284,6 @@ class Profile:
         )
 
     @decorators.require_login
-    @decorators.require_admin
     @decorators.csrf_protected
     def POST(self, profile_type, mail):
         form = web.input(
@@ -293,10 +296,15 @@ class Profile:
         mail = str(mail).lower()
         domain = mail.split('@', 1)[-1]
 
-        #check if admin asking for details of correct domain
-        admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
-        if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
-            raise web.seeother('/domains?msg=PERMISSION_DENIED')
+        if not session.get('is_admin') and not session.get('is_global_admin'):
+            mail=session.get("username")
+            form['accountStatus']='1'
+
+        if session.get('is_admin'):
+            #check if admin asking for details of correct domain
+            admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
+            if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
+                raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
         _wrap = SQLWrap()
         conn = _wrap.conn

@@ -19,6 +19,8 @@ def require_admin(func):
         if session.get("is_admin") is True or session.get("is_global_admin") is True:
             return func(*args, **kw)
         else:
+            if session.get('logged'):
+                raise web.seeother("/dashboard?=Permission Denied")
             session.kill()
             raise web.seeother("/login?msg=LOGIN_REQUIRED")
     return proxyfunc

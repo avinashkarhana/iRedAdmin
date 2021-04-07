@@ -80,24 +80,37 @@
 
                     <div class="columns clear">
                         <div class="col2-3">
+                            {% if session.get("is_admin") or session.get('is_global_admin') %}
                             {{ display_account_status(profile.active) }}
+                            {% endif %}
 
                             <div class="bt-space10"></div>
                             {{ display_input_cn(value=profile.name, email=mail, empty_if_equal_to_username=true) }}
 
                             {% set stored_mailbox_size = used_quota.get(mail, {}).get('bytes', 0) %}
                             {% set stored_mailbox_messages = used_quota.get(mail, {}).get('messages', 0) %}
-
+                            
+                            {% if session.get("is_admin") or session.get('is_global_admin') %}
                             {{ display_quota(value=profile.quota,
                                              show_value_in_input=true,
                                              used_quota=stored_mailbox_size,
                                              stored_messages=stored_mailbox_messages,
                                              show_used_quota=true) }}
+                            {% else %}
+                            {{ display_quota(value=profile.quota,
+                                             show_value_in_input=true,
+                                             used_quota=stored_mailbox_size,
+                                             stored_messages=stored_mailbox_messages,
+                                             insert_input=false,
+                                             show_used_quota=true) }}
+                            {% endif %}
 
                             {{ display_preferred_language(value=profile.get('language'), languagemaps=languagemaps) }}
                             {{ display_timezones(value=user_settings.get('timezone'), timezones=timezones) }}
                             <div class="bt-space10"></div>
+                            {% if session.get("is_admin") or session.get('is_global_admin') %}
                             {{ display_input_employeeid(profile.employeeid) }}
+                            {% endif %}
                         </div>{#-- .col2-3 --#}
                     </div>{#-- .columns --#}
                     {{ input_submit() }}

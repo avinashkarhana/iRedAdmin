@@ -62,6 +62,13 @@
                                 <label class="size-80 fl-space">{{ _('Password') }}</label>
                                 <input type="password" name="password" size="25" class="text" id="password" />
                             </div>
+                            <div class="row clear">
+                                <label class="size-80 fl-space">Login as:</label>
+                                <select name="login_type">
+                                    <option value="admin" selected="selected">Admin</option>
+                                    <option value="user">User</option>
+                                </select>
+                            </div>
 
                             <input type="submit" name="form_login" class="button green" value="{{ _('Login') }}" />
                         </div>

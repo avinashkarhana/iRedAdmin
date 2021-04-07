@@ -50,24 +50,32 @@ class Login:
         api_key = False
         username = False
         password = False
-
+        login_type='admin'
         # check if API login
         try:
             if form.get('key', '').strip()!="" and form.get('key', '').strip()!=None:
                 is_api_login=True
-                api_key = str(form.get('key', '').strip())
+                api_key = str(form.get('key', '').strip()).lower()
+                api_key = ''.join(e for e in api_key if e.isalnum())
             else:
                 is_api_login=False
         except AttributeError:
             raise web.seeother('/api?msg=Something_Went_Wrong_E:AuthAPIChk')
 
+        # check type of user login
+        try:
+            if form.get('login_type', '').strip()!="" and form.get('login_type', '').strip()!=None:
+                login_type = str(form.get('key', '').strip()).lower()
+                login_type = ''.join(e for e in login_type if e.isalnum())
+        except AttributeError:
+            raise web.seeother('/login?msg=Try Again!')
         
         if not is_api_login:
             # Get username, password.
             username = form.get('username', '').strip().lower()
             password = str(form.get('password', '').strip())
 
-        # Auth as domain admin
+        # Auth
         _wrap = SQLWrap()
         conn = _wrap.conn
 
@@ -76,10 +84,15 @@ class Login:
                                 password=password,
                                 is_api_login=is_api_login,
                                 api_key=api_key,
-                                account_type='admin')
+                                account_type=login_type)
 
         if auth_result[0] is True:
-            log_activity(msg="Admin login success", event='login')
+            if login_type=="admin":
+                # Admin loggedin
+                log_activity(msg="Admin login success", event='login')
+            else:
+                # user loggedin
+                log_activity(msg="User login success", event='user_login')
 
             # Save selected language
             selected_language = str(form.get('lang', '')).strip()

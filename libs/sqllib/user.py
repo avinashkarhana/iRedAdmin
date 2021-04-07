@@ -638,16 +638,13 @@ def update(conn, mail, profile_type, form):
     mail = str(mail).lower()
     domain = mail.split('@', 1)[-1]
 
-    qr = sql_lib_domain.simple_profile(conn=conn,
-                                       domain=domain,
-                                       columns=['maxquota', 'settings'])
+    qr = sql_lib_general.get_domain_settings(conn=conn, domain=domain)
+
     if not qr[0]:
         return qr
 
-    domain_profile = qr[1]
+    domain_settings = qr[1]
     del qr
-
-    domain_settings = sqlutils.account_settings_string_to_dict(domain_profile.get('settings', ''))
 
     disabled_user_profiles = domain_settings.get('disabled_user_profiles', [])
     if not session.get('is_global_admin'):
@@ -700,15 +697,16 @@ def update(conn, mail, profile_type, form):
         except:
             pass
 
-        # Get mail quota size.
-        mailQuota = str(form.get('mailQuota'))
-        if mailQuota.isdigit():
-            mailQuota = int(mailQuota)
-        else:
-            mailQuota = 0
+        if session.get('is_admin') or session.get("is_global_admin"):
+            # Get mail quota size.
+            mailQuota = str(form.get('mailQuota'))
+            if mailQuota.isdigit():
+                mailQuota = int(mailQuota)
+            else:
+                mailQuota = 0
 
-        updates['quota'] = mailQuota
-        updates['employeeid'] = form.get('employeeNumber', '')
+            updates['quota'] = mailQuota
+            updates['employeeid'] = form.get('employeeNumber', '')
 
     elif profile_type == 'password':
         newpw = web.safestr(form.get('newpw', ''))

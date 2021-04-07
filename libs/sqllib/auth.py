@@ -148,7 +148,6 @@ def auth(conn,
         if session.get('admin_is_mail_user'):
             if record.get('isglobaladmin', 0) == 1:
                 session['is_global_admin'] = True
-                session['is_admin'] = True
             if record.get('isadmin', 0) == 1:
                 session['is_admin'] = True
 
