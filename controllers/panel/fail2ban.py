@@ -48,9 +48,12 @@ class Log:
 
         qr = fail2banlib.delete_logs(form=form, delete_all=delete_all)
         if qr[0]:
-            for i in form.ip:
-                log_activity(msg="Unbanned "+i, event='unban')
-            raise web.seeother('/activities/fail2ban?msg=UNBANNED')
+            if not delete_all:
+                for i in form.ip:
+                    log_activity(msg="Unbanned "+i, event='unban')
+                raise web.seeother('/activities/fail2ban?msg=UNBANNED')
+            else:
+                log_activity(msg="Unbanned All", event='unban')
+                raise web.seeother('/activities/fail2ban?msg=UNBANNED_ALL')
         else:
-            log_activity(msg="Unbanned All", event='unban')
             raise web.seeother('/activities/fail2ban?msg=%s' % web.urlquote(qr[1]))

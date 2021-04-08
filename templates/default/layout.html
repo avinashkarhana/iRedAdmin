@@ -57,7 +57,8 @@
                     {# Display extra menus for global admin. #}
                     {% if session.get('is_global_admin') %}
                         <li {% block navlinks_admins %}{% endblock %}><a href="{{ctx.homepath}}/admins">{{ _('Admins') }}</a></li>
-                    {% endif %}
+                        <li {% block navlinks_api_panel %}{% endblock %}><a href="{{ctx.homepath}}/apis">{{ _('API Panel') }}</a></li>
+                        {% endif %}
 
                     <li {% block navlinks_activities %}{% endblock %}><a href="#">{{ _('Activities') }}</a>
                         <ul>
@@ -80,8 +81,9 @@
 
         </div> <!-- End head layout -->
     </div><!-- End page top -->
-
-    {% block breadcrumb %}{% endblock %}
+    {% if session.get("is_admin") or session.get('is_global_admin') %}
+        {% block breadcrumb %}{% endblock %}
+    {% endif %}
 
     <div class="main pagesize"> <!-- *** mainpage layout *** -->
         <div class="main-wrap">

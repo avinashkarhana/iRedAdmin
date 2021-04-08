@@ -16,4 +16,6 @@ LOG_EVENTS = [
     'update_wblist',
     'iredapd',      # iRedAPD rejection.
     'unban',        # Unban IP address
+    'disable_api_key',
+    'generated_api_key',
 ]

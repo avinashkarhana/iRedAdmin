@@ -1,0 +1,96 @@
+{% extends "layout.html" %}
+
+{% from "macros/form_inputs.html" import
+    input_csrf_token
+    with context
+    %}
+
+{% from "macros/general.html" import
+    show_pages,
+    show_event_name
+    with context
+    %}
+
+{% from "macros/msg_handlers.html" import log_msg_handler with context %}
+
+{% block title %}{{ _('API Panel') }}{% endblock %}
+{% block navlinks_activities %}class="active"{% endblock %}
+
+{% block main %}
+
+{{ log_msg_handler(msg) }}
+<script src="{{ctx.homepath}}/static/js/pikaday.js"></script>
+<link rel="stylesheet" href="{{ctx.homepath}}/static/default/css/pikaday.css">
+<div class="content-box">
+    <div class="box-body" style="width: 110% !important;">
+        <div class="box-header clear">
+            <h2>{{ _('APIs Generatation Panel') }}</h2>
+        </div>
+
+<div class="clear"></div>
+
+<form name="keygen" id="list_table" method="post" autocomplete="off" action="{{ctx.homepath}}/apis/generate">
+    {{ input_csrf_token() }}
+    <table class="style1">
+        <thead>
+            <tr>
+                <th data-sort="string-ins">{{ _('Option') }}</th>
+                <th data-sort="string-ins">{{ _('Value') }}</th>
+            </tr>
+        </thead>
+
+        <tbody>
+            
+            <tr>
+                <td>{{ _('Expiry DateTime') }}</td>
+                <td>
+                    <input type="text" id="expiry" name="expiry" aria-label="Use the arrow keys to pick a date">
+                </td>
+            </tr>
+            <tr>
+                <td>{{ _('Is Enabled?') }}</td>
+                <td>
+                    <select name="is_enabled" class="fl-space">
+                        <option>Choose Option</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </td>
+            </tr>
+            <tr>
+                <td>{{ _('Is Global Admin Key?') }}</td>
+                <td>
+                    <select name="isglobaladminapi" class="fl-space">
+                        <option>Choose Option</option>
+                        <option value="1">Yes</option>
+                        <option value="0">No</option>
+                    </select>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+    <input type="hidden" name="action" value="generate" />
+    <input type="submit" value="{{ _('Generate') }}" class="button fl-space" />
+</form>
+<script>
+    function assignDateTimePicker(id){
+        var today = new Date()
+        var year = today.getFullYear();
+        var month = today.getMonth();
+        var day = today.getDate();
+        var mxyr = year + 1;
+        var maxdate = new Date(mxyr, month, day);
+        var picker = new Pikaday(
+        {
+            field: document.getElementById(id),
+            firstDay: 1,
+            minDate: today,
+            maxDate: maxdate,
+            yearRange: [year,mxyr]
+        });
+    }
+    assignDateTimePicker('expiry');
+    </script>
+</div>
+</div>
+{% endblock main %}

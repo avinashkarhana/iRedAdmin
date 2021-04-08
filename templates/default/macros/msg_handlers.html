@@ -241,6 +241,14 @@
         {{ success_info( _('Selected log records were deleted.') ) }}
     {% elif msg == 'UNBANNED' %}
         {{ success_info( _('Unbanned selected IPs.') ) }}
+    {% elif msg == 'UNBANNED_ALL' %}
+        {{ success_info( _('Unbanned all IPs.') ) }}
+    {% elif msg == 'DISABLED_API_KEY' %}
+        {{ success_info( _('Disabled selected API Keys.') ) }}
+    {% elif msg == 'DISABLED_API_KEY_ALL' %}
+        {{ success_info( _('Disabled all API Keys.') ) }}
+    {% elif 'GENERATED_API_KEY_' in msg %}
+        {{ success_info( _('Generated API Key: '+msg[18:]) ) }}
     {% else %}
         {{ error_info( msg ) }}
     {% endif %}
