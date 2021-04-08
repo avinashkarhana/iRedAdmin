@@ -275,7 +275,8 @@ def delete_domains(domains,
     return (True, )
 
 
-@decorators.require_global_admin
+@decorators.require_login
+@decorators.require_admin
 def simple_profile(domain, columns=None, conn=None):
     if not iredutils.is_domain(domain):
         return (False, 'INVALID_DOMAIN_NAME')

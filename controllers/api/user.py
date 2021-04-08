@@ -268,7 +268,7 @@ class Profile:
             telephoneNumber=[],
             domainName=[],      # Managed domains
         )
-        profile_type=web.input('profile_type')
+        profile_type=web.input()['profile_type']
 
         mail = str(mail).lower()
 

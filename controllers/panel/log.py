@@ -15,7 +15,8 @@ elif settings.backend in ['mysql', 'pgsql']:
 
 
 class Log:
-    @decorators.require_global_admin
+    @decorators.require_login
+    @decorators.require_admin
     def GET(self):
         form = web.input(_unicode=False)
 

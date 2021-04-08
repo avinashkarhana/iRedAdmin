@@ -138,7 +138,7 @@ class Profile:
         #check if admin asking for details of correct domain
         admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
         if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
-            raise web.seeother('/domains?msg=PERMISSION_DENIED')
+            raise web.seeother('/domains?msg=PERMISSION_DENIED_TRYING_TO_ACCESS_OUT_OF_BOUND_DOMAIN')
 
         _wrap = SQLWrap()
         conn = _wrap.conn

@@ -665,13 +665,13 @@
         {% endif %}
 
         <div class="clean-padding fl-space2">
-            {{% if insert_input %}}
+            {% if insert_input %}
             <input type="text" size="6"
                    name="mailQuota"
                    value="{% if show_value_in_input %}{{ value |e }}{% endif %}"
                    class="text fl-space {% if not enable_input %}disabled{% endif %}"
                    />
-            {{% endif %}}
+            {% endif %}
             <label class="fl-space">MB
                 {% if spare_quota_bytes |int > 0 %}
                     {% if show_spare_quota %}

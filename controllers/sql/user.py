@@ -30,7 +30,7 @@ class List:
         #check if admin asking for details of correct domain
         admins_of_domain=sql_lib_domain.get_domain_admin_addresses(domain=domain)[1]
         if session.get('username') not in admins_of_domain and not session.get('is_global_admin'):
-            raise web.seeother('/domains?msg=PERMISSION_DENIED')
+            raise web.seeother('/domains?msg=PERMISSION_DENIED_TRYING_TO_ACCESS_OUT_OF_BOUND_DOMAIN')
 
         records = []
 
@@ -235,6 +235,7 @@ class Profile:
         used_quota = {}
 
         qr = sql_lib_user.profile(mail=mail, conn=conn)
+
         if qr[0]:
             user_profile = qr[1]
         else:
@@ -249,6 +250,7 @@ class Profile:
         qr = sql_lib_general.get_user_settings(conn=conn,
                                                mail=mail,
                                                existing_settings=user_profile['settings'])
+
         if qr[0]:
             user_settings = qr[1]
         del qr
@@ -262,7 +264,6 @@ class Profile:
 
         if qr[0]:
             domain_settings = qr[1]
-
             min_passwd_length = domain_settings.get('min_passwd_length', settings.min_passwd_length)
             max_passwd_length = domain_settings.get('max_passwd_length', settings.max_passwd_length)
 
@@ -309,8 +310,8 @@ class Profile:
         _wrap = SQLWrap()
         conn = _wrap.conn
  
-        #check if a non-global admin not trying to edit a global admin
-        if session.get("is_global_admin") is False:
+        #check if a non-global admin not trying to edit another admin
+        if session.get("is_global_admin", False) is False:
             if sql_lib_general.is_global_admin(admin=mail) or sql_lib_user.user_is_global_admin(conn=conn,mail=mail) or sql_lib_user.user_is_normal_admin(conn=conn,mail=mail):
                 raise web.seeother('/domains?msg=PERMISSION_DENIED')
 
@@ -351,6 +352,7 @@ class Create:
 
         # Get domain profile.
         qr_profile = sql_lib_domain.simple_profile(domain=domain, conn=conn)
+        
         if qr_profile[0] is True:
             domain_profile = qr_profile[1]
             domain_settings = sqlutils.account_settings_string_to_dict(domain_profile['settings'])

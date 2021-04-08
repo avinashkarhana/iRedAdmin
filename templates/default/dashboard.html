@@ -1,7 +1,7 @@
 {# version, hostname, uptime, loadavg, #}
 
 {% extends "layout.html" %}
-{% from "macros/msg_handlers.html" import success_info, error_info with context %}
+{% from "macros/msg_handlers.html" import success_info,user_msg_handler with context %}
 
 {% block title %} {{ _('Dashboard') }} {% endblock %}
 {% block navlinks_dashboard %}class="active"{% endblock %}
@@ -9,8 +9,7 @@
 {% block main %}
 
 {# Show system message #}
-{{ error_info(msg) }}
-
+{{ user_msg_handler(msg) }}
 
 {# Checked and get response data #}
 {% if session.get('new_version_available') %}

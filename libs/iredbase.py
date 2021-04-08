@@ -39,6 +39,9 @@ if settings.backend == "pgsql":
 
 conn_iredadmin = iredutils.get_db_conn(db_name="iredadmin", sql_dbn=__sql_dbn)
 web.conn_iredadmin = conn_iredadmin
+conn_fail2ban = iredutils.get_db_conn(db_name="fail2ban", sql_dbn=__sql_dbn)
+web.conn_fail2ban = conn_fail2ban
+
 
 # URL handlers.
 # Import backend related urls.

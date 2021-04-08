@@ -51,6 +51,7 @@ class Login:
         username = False
         password = False
         login_type='admin'
+
         # check if API login
         try:
             if form.get('key', '').strip()!="" and form.get('key', '').strip()!=None:
@@ -65,7 +66,7 @@ class Login:
         # check type of user login
         try:
             if form.get('login_type', '').strip()!="" and form.get('login_type', '').strip()!=None:
-                login_type = str(form.get('key', '').strip()).lower()
+                login_type = str(form.get('login_type', '').strip()).lower()
                 login_type = ''.join(e for e in login_type if e.isalnum())
         except AttributeError:
             raise web.seeother('/login?msg=Try Again!')
@@ -134,7 +135,8 @@ class Logout:
 
 
 class Dashboard:
-    @decorators.require_global_admin
+    #@decorators.require_global_admin
+    @decorators.require_login
     def GET(self):
         form = web.input(_unicode=False)
         _check_new_version = ('checknew' in form)

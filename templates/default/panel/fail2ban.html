@@ -1,0 +1,214 @@
+{% extends "layout.html" %}
+
+{% from "macros/form_inputs.html" import
+    input_csrf_token
+    with context
+    %}
+
+{% from "macros/general.html" import
+    show_pages,
+    show_event_name
+    with context
+    %}
+
+{% from "macros/msg_handlers.html" import log_msg_handler with context %}
+
+{% block title %}{{ _('Fail2ban Log') }}{% endblock %}
+{% block navlinks_activities %}class="active"{% endblock %}
+
+{% block main %}
+
+{{ log_msg_handler(msg) }}
+<style>
+    /* The Modal (background) */
+    .modal {
+      display: none; /* Hidden by default */
+      position: fixed; /* Stay in place */
+      z-index: 1; /* Sit on top */
+      padding-top: 200px; /* Location of the box */
+      left: 0;
+      top: 0;
+      width: 100%; /* Full width */
+      height: 100%; /* Full height */
+      overflow: auto; /* Enable scroll if needed */
+      background-color: rgb(0,0,0); /* Fallback color */
+      background-color: rgba(0,0,0,0.4); /* Black w/ opacity */
+    }
+    
+    /* Modal Content */
+    .modal-content {
+      background-color: #fefefe;
+      margin: auto;
+      padding: 20px;
+      border: 1px solid #888;
+      width: 80%;
+    }
+    
+    /* The Close Button */
+    .close {
+      color: #aaaaaa;
+      float: right;
+      font-size: 28px;
+      font-weight: bold;
+    }
+    
+    .close:hover,
+    .close:focus {
+      color: #000;
+      text-decoration: none;
+      cursor: pointer;
+    }
+</style>
+<script>
+    function logtotxt(id){
+        var modalbox = document.getElementById("modal_"+id);
+        var cvis = modalbox.style.display;
+        if(cvis == "none"){
+            var textbox = document.getElementById("log_"+id);
+            var x = textbox.innerText;
+            var ct = "";
+            var is_b64 = true;
+            try {
+                ct = window.atob(x);
+            } catch(e) {
+                is_b64 = false;
+            }
+            if(is_b64){
+                var pat = /(\w.. \d \d\d:\d\d:\d\d )/i;
+                var res = ct.split(pat);
+                res=res.splice(1);
+                res = Array.from({length:res.length/2}, (_,i)=>res[2*i]+res[2*i+1]);
+                res = res.join("<br>");
+                textbox.innerHTML="<br>"+res;
+            }
+            document.getElementById("button_"+id).value="Hide Log";
+            document.getElementById("modal_"+id).style.display="block";
+            
+        }
+        else{
+            document.getElementById("modal_"+id).style.display="none";
+            document.getElementById("button_"+id).value="Show Log";
+        }
+    }
+
+    function addIP(e){
+        if(e.checked){
+            var p = e.parentElement.parentElement;
+            var ip = p.children[2].innerText;
+            var ne = document.createElement('input');
+            ne.type = "hidden";
+            ne.name="ip";
+            ne.id="ip_"+e.value;
+            ne.value = ip;
+            p.firstElementChild.appendChild(ne);
+        }
+        else{
+            document.getElementById('ip_'+e.value).remove();
+        }
+    }
+
+    window.onclick = function(event) {
+        if (event.target.id.slice(0,6)=="modal_") {
+            logtotxt(event.target.id.slice(6));
+        }
+    }
+</script>
+<div class="content-box">
+    <div class="box-body">
+        <div class="box-header clear">
+                <h2>{{ _('Fail2Ban Log') }}
+                    {% if total > 0 %}
+                        ({{ (cur_page-1)*page_size_limit + 1 }}-{{ (cur_page-1)*page_size_limit + (entries |length) }}/{{ total }})
+                    {% endif %}
+                </h2>
+        </div>
+
+<div class="clear"></div>
+
+{# List all logs #}
+{% if session.get('is_global_admin') %}
+<form name="log" id="list_table" method="post" action="{{ctx.homepath}}/activities/fail2ban">
+    {{ input_csrf_token() }}
+{% endif %}
+    <table class="style1">
+        <thead>
+            <tr>
+                {% if session.get('is_global_admin') %}
+                    <th class="checkbox"><input type="checkbox" class="checkbox select-all" /></th>
+                {% endif %}
+                <th data-sort="string-ins">{{ _('Time') }}</th>
+                <th data-sort="string-ins">{{ _('IP Address') }}</th>
+                <th data-sort="string-ins">{{ _('Ports') }}</th>
+                <th data-sort="string-ins">{{ _('Protocol') }}</th>
+                <th data-sort="string-ins">{{ _('Jail') }}</th>
+                <th data-sort="string-ins">{{ _('Hostname') }}</th>
+                <th data-sort="string-ins">{{ _('Country') }}</th>
+                <th data-sort="string-ins">{{ _('Number of Failures') }}</th>
+                <th data-sort="string-ins">{{ _('Log') }}</th>
+            </tr>
+        </thead>
+
+        {# List domain attributes/avalues. #}
+        <tbody>
+            {% if entries |length > 0 %}
+                {% for log in entries %}
+                    <tr>
+                        {% if session.get('is_global_admin') %}
+                            <td class="checkbox"><input type="checkbox" onchange="addIP(this)" name="id" value="{{ log.id }}" class="checkbox" /></td>
+                        {% endif %}
+                        <td style="white-space: nowrap;">{{ log.timestamp |set_datetime_format | utc_to_timezone(timezone=session['timezone'])}}</td>
+                        <td>{{ log.ip |e }}</td>
+                        <td>{{ log.ports |e }}</td>
+                        <td>{{ log.protocol |e }}</td>
+                        <td>{{ log.jail |e }}</td>
+                        <td>{{ log.hostname |e }}</td>
+                        <td>{{ log.country |e }}</td>
+                        <td>{{ log.failures |e }}</td>
+                        <td>
+                            <input type="button" id="button_{{ log.id }}" class="button fl-space" value="Show Log" onclick="logtotxt('{{ log.id }}')">
+                            <div id="modal_{{ log.id}}" style="display:none" class="modal">
+                                <div class="modal-content">
+                                    <span class="close" onclick="logtotxt('{{ log.id }}')">&times;</span>
+                                    <p id="log_{{ log.id }}" >
+                                        {{ log.loglines }}
+                                    </p>
+                                </div>
+                            </div>
+                        </td>
+                    </tr>
+                {% endfor %}
+            {% else %}
+                <tr>
+                    {% if session.get('is_global_admin') %}
+                        <td class="checkbox"></td>
+                    {% endif %}
+                    <td colspan="4">{{ _('Nothings triggered fail2ban yet, so nothing banned.') }}</td>
+                </tr>
+            {% endif %}
+        </tbody>
+    </table>
+
+    <div class="tab-footer clear f1">
+        {% if session.get('is_global_admin') %}
+            <div class="fl">
+                <select name="action" class="fl-space">
+                    <option>{{ _('Choose Action') }}</option>
+                    <option disabled>----</option>
+                    <option value="delete">{{ _('Unban selected') }}</option>
+                    <option value="deleteAll">{{ _('Unban all in database') }}</option>
+                </select>
+                <input type="submit" value="{{ _('Apply') }}" class="button fl-space" />
+            </div>
+        {% endif %}
+
+        {{ show_pages(baseurl=ctx.homepath + '/activities/fail2ban',
+                      total=total,
+                      cur_page=cur_page,
+                      sep='&page=') }}
+    </div>
+{% if session.get('is_global_admin') %}
+</form>
+{% endif %}
+</div>
+</div>
+{% endblock main %}

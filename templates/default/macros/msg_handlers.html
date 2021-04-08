@@ -239,6 +239,8 @@
 {% if msg is defined and msg is not sameas none and msg|string != '' %}
     {% if msg == 'DELETED' %}
         {{ success_info( _('Selected log records were deleted.') ) }}
+    {% elif msg == 'UNBANNED' %}
+        {{ success_info( _('Unbanned selected IPs.') ) }}
     {% else %}
         {{ error_info( msg ) }}
     {% endif %}

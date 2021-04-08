@@ -23,7 +23,7 @@
             <div class="head_top">
                 <div class="topbuts">
                     <ul class="clear">
-                        <li><a href="{{ctx.homepath}}/profile/{%if session.get('admin_is_mail_user')  or (not session.get('is_admin') and not session.get('is_global_admin')) %}user{%else%}admin{%endif%}/general/{{session.get('username')}}">{{ _('Preferences') }}</a></li>
+                        <li><a href="{{ctx.homepath}}/profile/{%if session.get('admin_is_mail_user') or (not session.get('is_admin') and not session.get('is_global_admin')) %}user{%else%}admin{%endif%}/general/{{session.get('username')}}">{{ _('Preferences') }}</a></li>
                         <li><a href="{{ctx.homepath}}/logout" class="red">{{ _('Logout') }}</a></li>
                     </ul>
 
@@ -62,6 +62,7 @@
                     <li {% block navlinks_activities %}{% endblock %}><a href="#">{{ _('Activities') }}</a>
                         <ul>
                             <li><a href="{{ctx.homepath}}/activities/admins">{{ _('Admin Log') }}</a></li>
+                            <li><a href="{{ctx.homepath}}/activities/fail2ban">{{ _('Fail2ban Log') }}</a></li>
                         </ul>
                     </li>
 
