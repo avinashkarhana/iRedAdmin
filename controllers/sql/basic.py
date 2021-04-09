@@ -15,6 +15,8 @@ class Login:
     def GET(self):
         form = web.input(_unicode=False)
         is_api_login = False
+        
+        # check if trying API Login with GET Method
         try:
             if form.get('key', '').strip()!="" and form.get('key', '').strip()!=None:
                 is_api_login=True
@@ -23,7 +25,7 @@ class Login:
                 is_api_login=False
         except AttributeError:
             raise web.seeother('/api?msg=Something_Went_Wrong_E:AuthAPIChk')
-
+        # return if trying API Login with GET Method
         if is_api_login:
             raise web.seeother('/api?msg=Login_with_API_KEY_must_be_via_POST_method')
 
@@ -71,23 +73,24 @@ class Login:
         except AttributeError:
             raise web.seeother('/login?msg=Try Again!')
         
+        # Get username, password. if not API login
         if not is_api_login:
-            # Get username, password.
             username = form.get('username', '').strip().lower()
             password = str(form.get('password', '').strip())
 
-        # Auth
         _wrap = SQLWrap()
         conn = _wrap.conn
-
+        # Authenticate
         auth_result = auth.auth(conn=conn, 
                                 username=username,
                                 password=password,
                                 is_api_login=is_api_login,
                                 api_key=api_key,
                                 account_type=login_type)
-
+        
+        # if Authenticated
         if auth_result[0] is True:
+            # Log Activity with correct user type
             if login_type=="admin":
                 # Admin loggedin
                 log_activity(msg="Admin login success", event='login')
@@ -95,28 +98,33 @@ class Login:
                 # user loggedin
                 log_activity(msg="User login success", event='user_login')
 
-            # Save selected language
+            # Save user's selected language and set into session
             selected_language = str(form.get('lang', '')).strip()
             if selected_language != web.ctx.lang and \
                selected_language in iredutils.get_language_maps():
                 session['lang'] = selected_language
 
+            # set create_new_domain in session if allowed in users settings
             account_settings = auth_result[1].get('account_settings', {})
             if (not session.get('is_global_admin')) and 'create_new_domains' in account_settings:
                 session['create_new_domains'] = True
 
+            # set sessions for disable_viewing_mail_log and disable_managing_quarantined_mails if defined in user settings
             for k in ['disable_viewing_mail_log',
                       'disable_managing_quarantined_mails']:
                 if account_settings.get(k) == 'yes':
                     session[k] = True
 
+            # redirect user to /domains if defined in user settings and not API Login, else redirect to dashboard on normal login and push LOGIN_SUCCESSFUL message on API login 
             if settings.REDIRECT_TO_DOMAIN_LIST_AFTER_LOGIN and (not is_api_login):
                 raise web.seeother('/domains')
             else:
                 if not is_api_login:
                     raise web.seeother('/dashboard?checknew')
                 else:
-                    raise web.seeother('/api?msg=Successfully_LoggedIn')
+                    raise web.seeother('/api?msg=LOGIN_SUCCESSFUL')
+
+        # if not Authenticated Push Invalid Credentials message
         else:
             if not is_api_login:
                 raise web.seeother('/login?msg=INVALID_CREDENTIALS')

@@ -37,7 +37,7 @@ class APIs:
                 qr = conn.select('api',
                     offset=(form_cur_page - 1) * PAGE_SIZE_LIMIT,
                     limit=PAGE_SIZE_LIMIT,
-                    order='is_enabled DESC, creation_timestamp DESC',
+                    order='is_enabled DESC, expiry_date_time DESC,creation_timestamp DESC',
                 )
                 entries=list(qr)
             
