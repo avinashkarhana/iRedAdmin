@@ -85,7 +85,7 @@
     <div class="box-body" style="width: 110% !important;">
         <div class="box-header clear">
             <ul class="tabs clear">
-                <li><input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc"}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" /></li>
+                <li><input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc";p.scrollIntoView();}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" /></li>
                 <li><a href="{{ctx.homepath}}/apis/generate"><i class="fa fa-plus"></i> {{ _('Generate API Keys') }}</a></li>
             </ul>
             <h2>{{ _('APIs Panel') }}
@@ -173,11 +173,11 @@
 </form>
 </div>
 <div id="apidoc" style="display: none;min-height: 1500px;">
-    <input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc"}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" />
-    <object data="{{ctx.homepath}}/static/iRedAdmin_API_Doc.pdf" type="application/pdf" width="100%" height="100%">
+    <input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc";p.scrollIntoView();}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" />
+    <object data="{{ctx.homepath}}/static/iRedAdmin_API_Doc.pdf" type="application/pdf" width="100%" height="1500px">
         <p></p><a href="{{ctx.homepath}}/static/iRedAdmin_API_Doc.pdf">Download the API Doc PDF!</a></p>
     </object>
-    <input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc"}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" />
+    <input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc";p.scrollIntoView();}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" />
 </div>
 </div>
 {% endblock main %}
