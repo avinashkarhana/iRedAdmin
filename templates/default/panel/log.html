@@ -19,7 +19,12 @@
 {% block main %}
 
 {{ log_msg_handler(msg) }}
-
+<style>
+    .log_msg_cl {
+        max-width: 500px !important;
+        overflow-wrap: break-word !important;
+    }
+</style>
 <div class="content-box">
     <div class="box-body">
         <div class="box-header clear">
@@ -105,7 +110,7 @@
                         {% endif %}
 
                         <td>{{ log.ip |e }}</td>
-                        <td class="{{ log.event |e }}_{{ log.loglevel |e }}">{{ log.msg |e }}</td>
+                        <td class="{{ log.event |e }}_{{ log.loglevel |e }} log_msg_cl">{{ log.msg |e }}</td>
                     </tr>
                 {% endfor %}
             {% else %}

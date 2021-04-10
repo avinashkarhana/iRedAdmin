@@ -249,6 +249,8 @@
         {{ success_info( _('Disabled all API Keys.') ) }}
     {% elif 'GENERATED_API_KEY_' in msg %}
         {{ success_info( _('Generated API Key: '+msg[18:]) ) }}
+    {% elif 'UPDATED_API_KEY' in msg %}
+        {{ success_info( _('Updated API Key.') ) }}
     {% else %}
         {{ error_info( msg ) }}
     {% endif %}

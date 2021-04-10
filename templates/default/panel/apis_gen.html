@@ -14,7 +14,7 @@
 {% from "macros/msg_handlers.html" import log_msg_handler with context %}
 
 {% block title %}{{ _('API Panel') }}{% endblock %}
-{% block navlinks_activities %}class="active"{% endblock %}
+{% block navlinks_api_panel %}class="active"{% endblock %}
 
 {% block main %}
 
@@ -40,6 +40,13 @@
         </thead>
 
         <tbody>
+            <tr>
+                <td>{{ _('API Description') }}</td>
+                <td>
+                    <textarea id="api_description" name="api_description" rows="4" cols="10" placeholder="Describe use or identification of API here...">
+                    </textarea>
+                </td>
+            </tr>
             
             <tr>
                 <td>{{ _('Expiry DateTime') }}</td>

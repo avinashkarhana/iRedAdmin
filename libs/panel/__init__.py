@@ -18,4 +18,5 @@ LOG_EVENTS = [
     'unban',        # Unban IP address
     'disable_api_key',
     'generated_api_key',
+    'updated_api_key',
 ]

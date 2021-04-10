@@ -128,5 +128,10 @@
     {% endblock js %}
 
     {% block extra_js %}{% endblock extra_js %}
+<script>
+    x=window.location.href.split("?")[0].split("//")[1];
+    y=x.slice(x.indexOf("/"));
+    window.history.pushState(null,'',y);
+</script>
 </body>
 </html>
