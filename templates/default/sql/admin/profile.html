@@ -86,7 +86,26 @@
                                                           languagemaps=languagemaps) }}
                         </div>
                     </div>{# .columns #}
-
+                    <div>
+                        <h4 class="size-250 fl-space">Domains Under Control</h4>
+                        <select name="managed_domains" onchange="chkAllDom(this)" id="managed_domains" multiple="" onfocus="this.nextElementSibling.style.display='inline-block';this.style.height='100%';" onfocusout="this.nextElementSibling.style.display='none';chkAllDom(this);">
+                            <option value="ALL" 
+                                {% if is_global_admin %} 
+                                    selected="selected"
+                                {% endif %}
+                            >ALL</option>
+                            {% for all_dom in allDomains %}
+                                    <option value="{{ all_dom.domain }}"
+                                    {% if all_dom.domain in managedDomains %} 
+                                        selected="selected"
+                                    {% endif %}
+                                    >{{ all_dom.domain }}</option>
+                            {% endfor %}
+                        </select>
+                        <span style="display: none; z-index: 1000; position: absolute; border: 2px solid yellow; background-color: cyan; margin-left: 10px; max-width: 400px !important;" id="msg">
+                            Hold down the Ctrl (windows) or Command (Mac) button to select multiple options.
+                        </span>
+                    </div>
                     {{ input_submit() }}
                 </form>
             </div>
@@ -123,5 +142,20 @@
         $(".tabs li").idTabs("profile_{{ profile_type }}");
         $('#domain_search').quickfilter('#all_domains tr');
     });
+</script>
+<script>
+    function chkAllDom(e){
+        x=e.selectedOptions;
+        for(var i=0;i<x.length;i++){
+            if (x[i].value!="ALL"){
+                e.options[0].selected=false;
+                break;
+            }
+        }
+    }
+    var x = document.querySelector("#managed_domains").selectedOptions;
+    y=document.querySelector("#managed_domains").offsetTop;
+    var z=x[x.length-1].offsetTop-y;
+    document.querySelector("#managed_domains").scrollTo(0,z-2);
 </script>
 {% endblock extra_js %}

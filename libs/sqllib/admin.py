@@ -6,6 +6,7 @@ from libs import iredutils, iredpwd, form_utils
 from libs.logger import log_traceback, log_activity
 from libs.sqllib import SQLWrap
 from libs.sqllib import general as sql_lib_general
+from libs.sqllib import domain as sql_lib_domain
 
 session = web.config.get('_session', {})
 
@@ -543,6 +544,7 @@ def add_admin_from_form(form, conn=None):
 
     # Name, language
     cn = form.get('cn', '')
+    managed_domains = form.get('managed_domains', [])
     lang = form_utils.get_language(form)
     _status = form_utils.get_single_value(form=form, input_name='accountStatus', default_value='active')
     if _status == 'active':
@@ -550,23 +552,41 @@ def add_admin_from_form(form, conn=None):
     else:
         _status = 0
 
+    # GET ALL valid DOMAINS
+    all_domains=sql_lib_domain.get_all_domains(conn=conn, name_only=True)
+    if all_domains[0]:
+        all_domains=all_domains[1]
+    else:
+        all_domains=[]
+    
+    #Check form submitted DOMAINS for validity
+    for i in managed_domains:
+        if i not in all_domains:
+            if i!="ALL":
+                managed_domains=list(filter((i).__ne__, managed_domains))
+    managed_domains=list(set(managed_domains))    
+
     try:
-        conn.insert('admin',
-                    username=mail,
-                    name=cn,
-                    password=iredpwd.generate_password_hash(passwd),
-                    language=lang,
-                    created=iredutils.get_gmttime(),
-                    active=_status)
+        if len(managed_domains)>0:
+            conn.insert('admin',
+                        username=mail,
+                        name=cn,
+                        password=iredpwd.generate_password_hash(passwd),
+                        language=lang,
+                        created=iredutils.get_gmttime(),
+                        active=_status)
 
-        conn.insert('domain_admins',
-                    username=mail,
-                    domain='ALL',
-                    created=iredutils.get_gmttime(),
-                    active='1')
+            for i in managed_domains:
+                conn.insert('domain_admins',
+                            username=mail,
+                            domain=i,
+                            created=iredutils.get_gmttime(),
+                            active='1')
 
-        log_activity(msg="Create admin: %s." % (mail), event='create')
-        return (True, )
+            log_activity(msg="Create admin: %s." % (mail), event='create')
+            return (True, )
+        else:
+            return (False, "No Valid Domain Selected!")
     except Exception as e:
         log_traceback()
         return (False, repr(e))
@@ -659,6 +679,30 @@ def update(mail, profile_type, form, conn=None):
         _wrap = SQLWrap()
         conn = _wrap.conn
 
+    m_doms=[]
+    try:
+        res=conn.select('domain_admins',vars={"uname":mail},what="domain",where="username=$uname")
+        for io in res:
+            m_doms.append(io.domain)
+    except:
+        m_doms=[]    
+    fm_doms=[]
+    try:
+        fm_doms=form.managed_domains
+    except:
+        fm_doms=[]
+    del_dom=[]
+    add_dom=[]
+    if len(m_doms)>0 and len(fm_doms)>0:
+        for dm in m_doms:
+            if dm not in fm_doms:
+                del_dom.append(dm)
+        for dm in fm_doms:
+            if dm not in m_doms:
+                add_dom.append(dm)
+
+
+
     params = {}
     if profile_type == 'general':
         # Name, preferred language
@@ -695,7 +739,37 @@ def update(mail, profile_type, form, conn=None):
                 raise web.seeother('/profile/admin/password/{}?msg={}'.format(mail, web.urlquote(e)))
             else:
                 raise web.seeother('/profile/admin/general/{}?msg={}'.format(mail, web.urlquote(e)))
+    
+    if len(add_dom)>0:
+        tm=False
+        err=""
+        for i in add_dom:
+            try:
+                conn.insert('domain_admins',
+                        username=mail,
+                        domain=i,
+                        created=iredutils.get_gmttime(),
+                        active='1')
+            except Exception as e:
+                err+=", "+repr(e)
+                tm=True
+        if tm:
+            raise web.seeother('/profile/admin/general/{}?msg={}'.format(mail, web.urlquote(err)))
 
+    if len(del_dom)>0:
+        tm=False
+        err=""
+        for i in del_dom:
+            try:
+                conn.delete('domain_admins',
+                           vars={"umail":mail,"dm":i},
+                           where="username=$umail and domain=$dm")
+            except Exception as e:
+                err+=", "+repr(e)
+                tm=True
+        if tm:
+            raise web.seeother('/profile/admin/general/{}?msg={}'.format(mail, web.urlquote(err)))
+    
     return (True, )
 
 

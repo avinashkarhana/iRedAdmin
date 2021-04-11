@@ -60,7 +60,7 @@
     }
 
     .keybox {
-        max-width: 350px !important;
+        max-width: 150px !important;
         word-wrap: break-word !important;
     }
 
@@ -93,7 +93,7 @@
     }
 </script>
 <div class="content-box">
-    <div class="box-body" style="width: 140% !important;margin-left: -200px !important;">
+    <div class="box-body">
         <div class="box-header clear">
             <ul class="tabs clear">
                 <li><input type="button" class="apidoc_button" onclick='var p=document.getElementById("apidoc");if(p.style.display=="none"){p.style.display="block";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Hide Doc";p.scrollIntoView();}}else{p.style.display="none";var cl=this.className;var ele=document.getElementsByClassName(cl);for(var i=0;i<ele.length;i++){ele[i].value="Show Doc"}}' class="button fl-space" value="Show Doc" /></li>
@@ -137,11 +137,11 @@
                                 <input type="checkbox" onchange="addKey(this)" name="id" value="{{ key.kid }}" class="checkbox" />
                             {% endif %}
                         </td>
-                        <td class="creation_timestamp_td">{{ key.creation_timestamp |set_datetime_format | utc_to_timezone(timezone=session['timezone'])}}</td>
-                        <td>{{ key.generated_by |e }}</td>
+                        <td class="creation_timestamp_td"><div style="max-width:50px;overflow-wrap:break-word;">{{ key.creation_timestamp |set_datetime_format | utc_to_timezone(timezone=session['timezone'])}}</div></td>
+                        <td><div style="max-width:70px;overflow-wrap:break-word;">{{ key.generated_by |e }}</div></td>
                         <td>
                             {% if key.editable %}
-                                <div style="width: 100px;" onclick="if(this.firstElementChild.disabled){var r = confirm('Do you Want to edit?');if(r==true){this.parentElement.parentElement.firstElementChild.firstElementChild.click();}}">
+                                <div style="width: 60px;" onclick="if(this.firstElementChild.disabled){var r = confirm('Do you Want to edit?');if(r==true){this.parentElement.parentElement.firstElementChild.firstElementChild.click();}}">
                                     <textarea name="{{ key.kid }}_api_description" id="{{ key.kid }}_api_description" style="width: inherit;" disabled>
                                         {{ key.api_description |e }}
                                     </textarea>
@@ -152,10 +152,10 @@
                                 </div>
                             {% endif %}
                         </td>
-                        <td>{{ key.last_update_timestamp |e }}</td>
-                        <td>{{ key.last_updated_by |e }}</td>
+                        <td><div style="max-width:50px;overflow-wrap:break-word;">{{ key.last_update_timestamp |e }}</div></td>
+                        <td><div style="max-width:70px;overflow-wrap:break-word;">{{ key.last_updated_by |e }}</div></td>
                         <td><div class="keybox">{{ key.api_key |e }}</div></td>
-                        <td>{{ key.expiry_date_time |e }}</td>
+                        <td><div style="max-width:50px;overflow-wrap:break-word;">{{ key.expiry_date_time |e }}</div></td>
                         <td>
                             {% if key.editable %}
                                 <div onclick="if(this.firstElementChild.disabled){var r = confirm('Do you Want to edit?');if(r==true){this.parentElement.parentElement.firstElementChild.firstElementChild.click();}}">

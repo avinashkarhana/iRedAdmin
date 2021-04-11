@@ -183,6 +183,7 @@ def auth(conn,
 
         # set session for 'is_global_admin', 'is_admin' if admin is domain_admin
         else:
+            # find global admin with domain admin with domains ALL
             try:
                 result = conn.select('domain_admins',
                                      vars={'username': username, 'domain': 'ALL'},
@@ -191,6 +192,18 @@ def auth(conn,
                                      limit=1)
                 if result:
                     session['is_global_admin'] = True
+                    session['is_admin'] = True
+            except:
+                pass
+
+            # if not global admin but domain admin and not a mail user
+            try:
+                result = conn.select('domain_admins',
+                                     vars={'username': username},
+                                     what='domain',
+                                     where='username=$username',
+                                    )
+                if result:
                     session['is_admin'] = True
             except:
                 pass

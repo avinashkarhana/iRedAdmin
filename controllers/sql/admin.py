@@ -159,7 +159,7 @@ class Profile:
     @decorators.require_global_admin
     def POST(self, profile_type, mail):
         mail = str(mail).lower()
-        form = web.input(domainName=[])
+        form = web.input(domainName=[],managed_domains=[])
 
         if not (session.get('is_global_admin') or session.get('username') == mail):
             # Don't allow to view/update others' profile.
@@ -183,8 +183,17 @@ class Create:
     @decorators.require_global_admin
     def GET(self):
         form = web.input()
+        _wrap = SQLWrap()
+        conn = _wrap.conn
+        
+        all_domains=sql_lib_domain.get_all_domains(conn=conn, name_only=True)
+        if all_domains[0]:
+            all_domains=all_domains[1]
+        else:
+            all_domains=[]
         return web.render('sql/admin/create.html',
                           languagemaps=iredutils.get_language_maps(),
+                          domains=all_domains,
                           default_language=settings.default_language,
                           min_passwd_length=settings.min_passwd_length,
                           max_passwd_length=settings.max_passwd_length,
@@ -194,7 +203,7 @@ class Create:
     @decorators.require_global_admin
     @decorators.csrf_protected
     def POST(self):
-        form = web.input()
+        form = web.input(_unicode=False, managed_domains=[])
         mail = web.safestr(form.get('mail')).lower()
 
         qr = sql_lib_admin.add_admin_from_form(form=form, conn=None)
