@@ -13,20 +13,24 @@ session = web.config.get("_session")
 logger = logging.getLogger("iredadmin")
 
 # Set log level.
-_log_level = getattr(logging, str(settings.SYSLOG_LOG_LEVEL).upper())
+_log_level = getattr(logging, str(settings.LOG_LEVEL).upper())
 logger.setLevel(_log_level)
 
-# Log format
-_formatter = logging.Formatter("%(name)s %(message)s (%(pathname)s, line %(lineno)d)")
-_facility = getattr(SysLogHandler, "LOG_" + settings.SYSLOG_FACILITY.upper())
-
-if settings.SYSLOG_SERVER.startswith("/"):
-    # Log to a local socket
-    _handler = SysLogHandler(address=settings.SYSLOG_SERVER, facility=_facility)
+if settings.LOG_TARGET == "stdout":
+    _handler = logging.StreamHandler()
+    _formatter = logging.Formatter("%(message)s (%(pathname)s, L%(lineno)d)")
 else:
-    # Log to a network address
-    _server = (settings.SYSLOG_SERVER, settings.SYSLOG_PORT)
-    _handler = SysLogHandler(address=_server, facility=_facility)
+    # Defaults to "syslog":
+    _facility = getattr(SysLogHandler, "LOG_" + settings.SYSLOG_FACILITY.upper())
+    _formatter = logging.Formatter("%(name)s %(message)s (%(pathname)s, L%(lineno)d)")
+
+    if settings.SYSLOG_SERVER.startswith("/"):
+        # Log to a local socket
+        _handler = SysLogHandler(address=settings.SYSLOG_SERVER, facility=_facility)
+    else:
+        # Log to a network address
+        _server = (settings.SYSLOG_SERVER, settings.SYSLOG_PORT)
+        _handler = SysLogHandler(address=_server, facility=_facility)
 
 _handler.setFormatter(_formatter)
 logger.addHandler(_handler)
@@ -66,6 +70,13 @@ def log_activity(msg, admin="", domain="", username="", event="", loglevel="info
             ip=str(session.ip),
             timestamp=iredutils.get_gmttime(),
         )
+
+        if loglevel == "info":
+            logger.info("{0} admin={1}, domain={2}, username={3}, event={4}, "
+                        "ip={5}".format(msg, admin, domain, username, event, session.ip))
+        elif loglevel == "error":
+            logger.error("{0} admin={1}, domain={2}, username={3}, event={4}, "
+                         "ip={5}".format(msg, admin, domain, username, event, session.ip))
     except:
         pass
 
