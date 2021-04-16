@@ -20,7 +20,7 @@ Tested on:
 > > > 
 > > > MariaDB backend
 
-* Download packed stable release tarball from release section or if you want to try the development verion, then clone the repo.
+* Download packed stable release tarball from release section or if you want to try the development version, then clone the repo.
 
 * Installation Guide, Release Notes, Upgrade Tutorials:
   http://www.iredmail.org/docs/iredadmin-pro.releases.html
