@@ -8,7 +8,7 @@
 
 >> ● Single Domain multi admins
 
->> ● API Panel [very-basic]
+>> ● API Panel [very-basic] [Check the file `iRedAdmin_API_Doc.pdf` in root of this directory]
 
 >> ● Activity Logs(customised per user type)
 
