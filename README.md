@@ -1,19 +1,23 @@
 # A iRedMail Admin Panel (Open Source Edition) fork
 
 ## With additional custom-built features, which are not part of original open source version of project 
->> ### Like:
->>  Login for all type of users[normal,domain-admin,global-admin]
->>  
->>  ● API Panel[very-basic] 
->>  
->>  ● Activity Logs(customised per user type)
->>  
->>  ● Activity Logs deletion (only for Global Admin)
->>  
->>  ● Fail2Ban Logs
->>  
->>  ● Fail2Ban Unban feature within logs (only for Global Admin)
->>  
+### Simply saying `"It is iRedAdmin on Steriods"`
+>> Login for all type of users[normal,domain-admin,global-admin]
+
+>> ● Single Admin multi domains
+
+>> ● Single Domain multi admins
+
+>> ● API Panel [very-basic]
+
+>> ● Activity Logs(customised per user type)
+
+>> ● Activity Logs deletion (only for Global Admin)
+
+>> ● Fail2Ban Logs
+
+>> ● Fail2Ban Unban feature within logs (only for Global Admin)
+
 # Only Supports SQL based backend for now
 Tested on: 
 > > > CentOS 8
