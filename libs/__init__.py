@@ -1,3 +1,5 @@
 __author__ = "Avinash Karhana"
 __author_mail__ = "avinashkarhana1@gmail.com"
-__version__ = "1.3"
+__version__ = "1.6"
+__license__ = "GPLv3"
+__maintainer__ = "Avinash Karhana"
